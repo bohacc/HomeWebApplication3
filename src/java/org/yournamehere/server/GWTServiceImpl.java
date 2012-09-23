@@ -65,7 +65,7 @@ public class GWTServiceImpl extends RemoteServiceServlet implements GWTService {
               //DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:XE","mbsystem","mbsystem");
             JasperPrint jp = JasperFillManager.fillReport(jr, null, new JREmptyDataSource());  //getServletContext().getRealPath("/")+ "/WEB-INF/report1.jrxml"
             
-            System.out.println("krok 3");
+            System.out.println("krok 3"); 
             JasperPrintManager.printReport(jp, true); 
             
             //JasperExportManager.exportReportToPdfFile(jp, "C:/sample_report.pdf");
