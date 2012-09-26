@@ -5,6 +5,9 @@
 package org.yournamehere.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import java.awt.Desktop;
+import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -18,6 +21,8 @@ import org.yournamehere.client.Akcie;
 import org.yournamehere.client.GWTService;
 import org.yournamehere.client.ZalobyZpravy;
 import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.util.JRProperties;
 
 /**
  *
@@ -57,16 +62,28 @@ public class GWTServiceImpl extends RemoteServiceServlet implements GWTService {
     
     public String printList(){
         try {
+            Session session = NewHibernateUtil.getSessionFactory().getCurrentSession();
+            List results = session.createQuery("from zaloby").list();
+            JRProperties.setProperty("net.sf.jasperreports.default.pdf.encoding", "UTF-8");
+            
             System.out.println("krok 1");
             JasperReport jr = JasperCompileManager.compileReport("c:/Martin/reports/report2.jrxml");
 
             System.out.println("krok 2");
-            //Connection con =  
-              //DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:XE","mbsystem","mbsystem");
-            JasperPrint jp = JasperFillManager.fillReport(jr, null, new JREmptyDataSource());  //getServletContext().getRealPath("/")+ "/WEB-INF/report1.jrxml"
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            Connection con =  
+              DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:XE","mbsystem","mbsystem");
+            
+            JRBeanCollectionDataSource ds = new JRBeanCollectionDataSource(results);
+            
+            JasperPrint jp = JasperFillManager.fillReport(jr, null, ds /*con*/ /*new JREmptyDataSource()*/);  //getServletContext().getRealPath("/")+ "/WEB-INF/report1.jrxml"
             
             System.out.println("krok 3"); 
-            JasperPrintManager.printReport(jp, true); 
+            //JasperPrintManager.printReport(jp, true); 
+            
+            JasperExportManager.exportReportToPdfFile(jp,"c:/Martin/test.pdf");
+            File myFile = new File("c:/Martin/test.pdf");
+            Desktop.getDesktop().open(myFile);
             
             //JasperExportManager.exportReportToPdfFile(jp, "C:/sample_report.pdf");
             
@@ -74,6 +91,12 @@ public class GWTServiceImpl extends RemoteServiceServlet implements GWTService {
             
         //} catch (SQLException ex) {
           //  Logger.getLogger(GWTServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(GWTServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(GWTServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            Logger.getLogger(GWTServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
         } catch (JRException ex) {
             System.out.println(ex.getMessage());
         }
